@@ -210,6 +210,74 @@
     .course-name { margin-top:7px; font-weight:900; color:var(--navy); line-height:1.2; }
     .course-cta { margin-top:14px; color:#47617d; font-size:.86rem; font-weight:800; }
 
+    .mobile-agenda { display:none; }
+    .mobile-day {
+      margin-bottom: 16px;
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 14px;
+      box-shadow: 0 10px 26px rgba(11,36,71,.07);
+    }
+    .mobile-day-title {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin:0 2px 11px;
+      color:var(--navy);
+      font-size:1rem;
+      font-weight:950;
+    }
+    .mobile-day-badge {
+      font-size:.72rem;
+      padding:5px 9px;
+      border-radius:999px;
+      background:var(--teal-soft);
+      color:#087466;
+      font-weight:900;
+    }
+    .mobile-event {
+      display:grid;
+      grid-template-columns: 64px 1fr;
+      gap:11px;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid rgba(11,36,71,.07);
+      margin-top:9px;
+    }
+    .mobile-event-time {
+      font-size:.78rem;
+      line-height:1.25;
+      font-weight:950;
+      color:var(--navy);
+      padding-top:2px;
+    }
+    .mobile-event-title {
+      color:#0c2c55;
+      font-weight:950;
+      line-height:1.18;
+    }
+    .mobile-event-teacher {
+      color:#50627a;
+      font-size:.8rem;
+      margin-top:4px;
+    }
+    .mobile-event a {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:42px;
+      margin-top:10px;
+      padding:9px 13px;
+      border-radius:11px;
+      background:rgba(255,255,255,.65);
+      border:1px solid rgba(11,36,71,.10);
+      color:#0b5c91;
+      text-decoration:none;
+      font-size:.82rem;
+      font-weight:950;
+    }
     footer { padding: 18px 0 10px; text-align:center; color:var(--muted); font-size:.84rem; }
 
     @media (max-width: 860px) {
@@ -222,13 +290,63 @@
       .courses { grid-template-columns:repeat(2,minmax(0,1fr)); }
     }
 
-    @media (max-width: 560px) {
+    @media (max-width: 700px) {
+      body { background: #f5f8fc; }
       .wrap { width:min(100% - 20px,1180px); }
-      .hero { padding-top:32px; }
-      .tabs { display:grid; grid-template-columns:1fr 1fr; width:100%; }
-      .tab { padding-inline:10px; }
-      .courses { grid-template-columns:1fr; }
-      .section-head { align-items:flex-start; flex-direction:column; }
+      .hero { padding:26px 10px 48px; }
+      .hero-grid { gap:20px; }
+      .eyebrow { font-size:.64rem; letter-spacing:.12em; }
+      h1 { font-size:2.35rem; margin-top:7px; }
+      .hero p { font-size:.92rem; line-height:1.45; }
+      .next-box { padding:15px; border-radius:16px; }
+      main { margin-top:-21px; padding-bottom:28px; }
+      .toolbar {
+        padding:8px;
+        gap:8px;
+        border-radius:16px;
+        box-shadow:0 10px 30px rgba(11,36,71,.12);
+      }
+      .tabs {
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        width:100%;
+        gap:5px;
+      }
+      .tab {
+        min-height:44px;
+        padding:8px 7px;
+        font-size:.82rem;
+      }
+      .tab[data-target="courses"] { grid-column:1 / -1; }
+      .quick-link {
+        min-height:44px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:.86rem;
+      }
+      .section { margin-top:22px; }
+      .section-head { align-items:flex-start; flex-direction:column; gap:4px; margin-bottom:12px; }
+      .section h2 { font-size:1.45rem; }
+      .section-note { font-size:.8rem; line-height:1.4; }
+      .schedule-wrap { display:none; }
+      .mobile-agenda { display:block; }
+      .courses { grid-template-columns:1fr; gap:10px; }
+      .course-card { padding:16px; border-radius:16px; }
+      .course-cta {
+        margin-top:12px;
+        display:inline-flex;
+        min-height:38px;
+        align-items:center;
+      }
+      footer { font-size:.76rem; line-height:1.45; }
+    }
+
+    @media (max-width: 380px) {
+      h1 { font-size:2rem; }
+      .mobile-event { grid-template-columns:56px 1fr; padding:10px; }
+      .mobile-event-time { font-size:.72rem; }
+      .mobile-event-title { font-size:.92rem; }
     }
   </style>
 </head>
@@ -298,6 +416,7 @@
           <div class="cell empty">—</div>
         </div>
       </div>
+      <div class="mobile-agenda" id="mobileClasses" aria-label="Clases por días"></div>
     </section>
 
     <section class="section tab-panel hidden" id="tutorials">
@@ -343,6 +462,7 @@
           <div class="cell empty">—</div><div class="cell empty">—</div><div class="cell empty">—</div>
         </div>
       </div>
+      <div class="mobile-agenda" id="mobileTutorials" aria-label="Tutorías por días"></div>
     </section>
 
     <section class="section tab-panel hidden" id="courses">
@@ -420,6 +540,53 @@
         meta.textContent=(offset===0?'Hoy':offset===1?'Mañana':dayNames[next.day])+' · '+next.start+'–'+next.end;
       }
     }
+    const classAgenda = [
+      {day:'Lunes',time:'19:00–20:00',name:'Inglés Profesional GS · B1',teacher:'Alberto González',url:'https://fp.foc.es/course/view.php?id=7',kind:'english'},
+      {day:'Lunes',time:'20:00–21:00',name:'Inglés Profesional GS · B2',teacher:'Alberto González',url:'https://fp.foc.es/course/view.php?id=7',kind:'english'},
+      {day:'Lunes',time:'21:00–22:00',name:'Desarrollo Web en Entorno Servidor',teacher:'Seila Vega',url:'https://fp.foc.es/course/view.php?id=21',kind:'dwes'},
+      {day:'Martes',time:'19:00–20:00',name:'Diseño de Interfaces Web',teacher:'Alexis Toledo Toledo',url:'https://fp.foc.es/course/view.php?id=18',kind:'diw'},
+      {day:'Martes',time:'20:00–21:00',name:'Desarrollo Web en Entorno Cliente',teacher:'Alfredo Valero Rodríguez',url:'https://fp.foc.es/course/view.php?id=20',kind:'dwec'},
+      {day:'Martes',time:'21:00–22:00',name:'CTOP Optativa · Framework Angular',teacher:'Alfredo Valero Rodríguez',url:'https://fp.foc.es/course/view.php?id=22',kind:'angular'},
+      {day:'Miércoles',time:'17:00–18:00',name:'Proyecto Intermodular',teacher:'Alejandro Manrique',url:'https://fp.foc.es/course/view.php?id=44',kind:'project'},
+      {day:'Miércoles',time:'20:00–21:00',name:'Despliegue de Aplicaciones Web',teacher:'Alexis Toledo Toledo',url:'https://fp.foc.es/course/view.php?id=19',kind:'daw'}
+    ];
+
+    const tutorialAgenda = [
+      {day:'Lunes',time:'20:00–21:00',name:'Desarrollo Web en Entorno Servidor',teacher:'Seila Vega',url:'https://fp.foc.es/course/view.php?id=21',kind:'dwes'},
+      {day:'Martes',time:'18:00–19:00',name:'Diseño de Interfaces Web',teacher:'Alexis Toledo Toledo',url:'https://fp.foc.es/course/view.php?id=18',kind:'diw'},
+      {day:'Miércoles',time:'17:00–18:00',name:'Proyecto Intermodular',teacher:'Alejandro Manrique · clase + tutoría',url:'https://fp.foc.es/course/view.php?id=44',kind:'project'},
+      {day:'Miércoles',time:'19:00–20:00',name:'Inglés Profesional GS · B1',teacher:'Alberto González',url:'https://fp.foc.es/course/view.php?id=7',kind:'english'},
+      {day:'Miércoles',time:'19:00–20:00',name:'CTOP Optativa · Framework Angular',teacher:'Alfredo Valero Rodríguez',url:'https://fp.foc.es/course/view.php?id=22',kind:'angular'},
+      {day:'Miércoles',time:'19:00–20:00',name:'Desarrollo Web en Entorno Cliente',teacher:'Alfredo Valero Rodríguez',url:'https://fp.foc.es/course/view.php?id=20',kind:'dwec'},
+      {day:'Miércoles',time:'19:00–20:00',name:'Despliegue de Aplicaciones Web',teacher:'Alexis Toledo Toledo',url:'https://fp.foc.es/course/view.php?id=19',kind:'daw'},
+      {day:'Miércoles',time:'20:00–21:00',name:'Inglés Profesional GS · B2',teacher:'Alberto González',url:'https://fp.foc.es/course/view.php?id=7',kind:'english'}
+    ];
+
+    function renderMobileAgenda(targetId, items){
+      const target = document.getElementById(targetId);
+      const todayMap = {1:'Lunes',2:'Martes',3:'Miércoles'};
+      const today = todayMap[new Date().getDay()];
+      const days = ['Lunes','Martes','Miércoles'];
+      target.innerHTML = days.map(day => {
+        const dayItems = items.filter(item => item.day === day);
+        if (!dayItems.length) return '';
+        const badge = day === today ? '<span class="mobile-day-badge">HOY</span>' : '';
+        return '<section class="mobile-day"><div class="mobile-day-title"><span>'+day+'</span>'+badge+'</div>' +
+          dayItems.map(item =>
+            '<article class="mobile-event '+item.kind+'">' +
+              '<div class="mobile-event-time">'+item.time.replace('–','<br>')+'</div>' +
+              '<div><div class="mobile-event-title">'+item.name+'</div>' +
+              '<div class="mobile-event-teacher">'+item.teacher+'</div>' +
+              '<a href="'+item.url+'" target="_blank" rel="noopener">Entrar al curso ↗</a></div>' +
+            '</article>'
+          ).join('') +
+        '</section>';
+      }).join('');
+    }
+
+    renderMobileAgenda('mobileClasses', classAgenda);
+    renderMobileAgenda('mobileTutorials', tutorialAgenda);
+
     updateNext();
     setInterval(updateNext, 60000);
   </script>
