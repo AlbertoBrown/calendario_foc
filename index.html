@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b2447" />
+  <title>Calendario FOC · DAW</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: rgba(255,255,255,.88);
+      --navy: #0b2447;
+      --navy-2: #133c72;
+      --teal: #0f9d8b;
+      --teal-soft: #dff6f2;
+      --text: #132238;
+      --muted: #64748b;
+      --line: #dfe7f0;
+      --shadow: 0 16px 45px rgba(11,36,71,.10);
+      --radius: 22px;
+      --english: #dceefe;
+      --dwes: #ffe1e5;
+      --diw: #eee5ff;
+      --dwec: #dff7f0;
+      --angular: #e4f2ff;
+      --daw: #ffeccf;
+      --project: #def5e5;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(15,157,139,.12), transparent 26%),
+        radial-gradient(circle at 90% 0%, rgba(19,60,114,.10), transparent 28%),
+        var(--bg);
+    }
+
+    a { color: inherit; }
+
+    .hero {
+      background: linear-gradient(135deg, #081f3a 0%, #0f315d 58%, #0e6d70 135%);
+      color: #fff;
+      padding: 44px 20px 56px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.13);
+      right: -90px;
+      top: -180px;
+      box-shadow: 0 0 0 44px rgba(255,255,255,.025), 0 0 0 88px rgba(255,255,255,.018);
+    }
+
+    .wrap { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    .hero-grid { display: grid; grid-template-columns: 1.5fr .8fr; gap: 30px; align-items: end; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .18em; font-size: .74rem; opacity: .72; font-weight: 800; }
+    h1 { font-size: clamp(2rem, 5vw, 4.2rem); margin: 8px 0 10px; line-height: .96; }
+    .hero p { margin: 0; max-width: 680px; color: #dce9f7; font-size: 1.04rem; }
+
+    .next-box {
+      position: relative;
+      z-index: 1;
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(14px);
+    }
+    .next-label { font-size: .76rem; text-transform: uppercase; letter-spacing: .12em; color: #b7e8df; font-weight: 800; }
+    .next-title { font-size: 1.12rem; font-weight: 800; margin: 7px 0 4px; }
+    .next-meta { color: #d7e4ef; font-size: .9rem; }
+
+    main { margin-top: -26px; position: relative; z-index: 2; padding-bottom: 60px; }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px;
+      background: rgba(255,255,255,.91);
+      border: 1px solid rgba(255,255,255,.7);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+    }
+
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tab {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 11px 16px;
+      border-radius: 12px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .tab.active { background: var(--navy); color: white; }
+
+    .quick-link {
+      text-decoration: none;
+      background: var(--teal);
+      color: #fff;
+      padding: 11px 15px;
+      border-radius: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .section { margin-top: 28px; }
+    .section-head { display:flex; justify-content:space-between; gap:16px; align-items:end; margin-bottom:14px; }
+    .section h2 { margin: 0; font-size: clamp(1.35rem, 3vw, 2rem); color: var(--navy); }
+    .section-note { color: var(--muted); font-size: .9rem; }
+
+    .schedule {
+      display: grid;
+      grid-template-columns: 118px repeat(3, 1fr);
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .cell {
+      min-height: 100px;
+      padding: 10px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.93);
+    }
+    .cell:nth-child(4n) { border-right: 0; }
+    .schedule .cell:nth-last-child(-n+4) { border-bottom: 0; }
+    .head-cell {
+      min-height: auto;
+      background: var(--navy);
+      color: #fff;
+      text-align: center;
+      font-weight: 900;
+      padding: 16px 8px;
+    }
+    .time-cell {
+      display:flex; align-items:center; justify-content:center;
+      background: #eef4f9;
+      color: var(--navy);
+      font-weight: 900;
+      text-align:center;
+    }
+
+    .event {
+      height: 100%;
+      min-height: 78px;
+      border-radius: 16px;
+      padding: 12px 13px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      border: 1px solid rgba(11,36,71,.07);
+    }
+    .event + .event { margin-top: 8px; }
+    .event-title { font-weight: 900; color: #0c2c55; line-height: 1.15; }
+    .event-meta { font-size: .82rem; color: #344762; margin-top: 4px; }
+    .event-link {
+      margin-top: 9px;
+      align-self:flex-start;
+      text-decoration:none;
+      color: #0b5c91;
+      font-size: .78rem;
+      font-weight: 900;
+    }
+    .event-link:hover { text-decoration: underline; }
+
+    .english{background:var(--english)} .dwes{background:var(--dwes)}
+    .diw{background:var(--diw)} .dwec{background:var(--dwec)}
+    .angular{background:var(--angular)} .daw{background:var(--daw)}
+    .project{background:var(--project)}
+
+    .empty { color:#b5c1cf; display:flex; align-items:center; justify-content:center; font-size:1.2rem; }
+    .hidden { display:none !important; }
+
+    .courses {
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 14px;
+    }
+    .course-card {
+      text-decoration:none;
+      background:var(--card);
+      border:1px solid rgba(11,36,71,.08);
+      padding:18px;
+      border-radius:18px;
+      box-shadow:0 10px 28px rgba(11,36,71,.06);
+      transition:.2s ease;
+      display:block;
+    }
+    .course-card:hover { transform: translateY(-3px); box-shadow:0 16px 34px rgba(11,36,71,.12); }
+    .course-code { font-size:.72rem; letter-spacing:.13em; text-transform:uppercase; color:var(--teal); font-weight:900; }
+    .course-name { margin-top:7px; font-weight:900; color:var(--navy); line-height:1.2; }
+    .course-cta { margin-top:14px; color:#47617d; font-size:.86rem; font-weight:800; }
+
+    footer { padding: 18px 0 10px; text-align:center; color:var(--muted); font-size:.84rem; }
+
+    @media (max-width: 860px) {
+      .hero-grid { grid-template-columns:1fr; }
+      .toolbar { position:static; align-items:stretch; flex-direction:column; }
+      .quick-link { text-align:center; }
+      .schedule { grid-template-columns: 88px repeat(3, minmax(180px,1fr)); overflow-x:auto; }
+      .schedule-wrap { overflow-x:auto; border-radius:var(--radius); }
+      .schedule { min-width: 700px; }
+      .courses { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .wrap { width:min(100% - 20px,1180px); }
+      .hero { padding-top:32px; }
+      .tabs { display:grid; grid-template-columns:1fr 1fr; width:100%; }
+      .tab { padding-inline:10px; }
+      .courses { grid-template-columns:1fr; }
+      .section-head { align-items:flex-start; flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow">FOC · Desarrollo de Aplicaciones Web</div>
+        <h1>Calendario FOC</h1>
+        <p>Tu horario semanal de clases y tutorías, con acceso directo a cada asignatura.</p>
+      </div>
+      <aside class="next-box" aria-live="polite">
+        <div class="next-label" id="nextLabel">Próxima sesión</div>
+        <div class="next-title" id="nextTitle">Calculando horario…</div>
+        <div class="next-meta" id="nextMeta"></div>
+      </aside>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <nav class="toolbar">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-target="classes">Clases</button>
+        <button class="tab" data-target="tutorials">Tutorías</button>
+        <button class="tab" data-target="courses">Accesos rápidos</button>
+      </div>
+      <a class="quick-link" href="https://fp.foc.es/" target="_blank" rel="noopener">Abrir campus FOC ↗</a>
+    </nav>
+
+    <section class="section tab-panel" id="classes">
+      <div class="section-head">
+        <div>
+          <h2>Horario de clases</h2>
+          <div class="section-note">Lunes · Martes · Miércoles</div>
+        </div>
+        <div class="section-note">Pulsa “Entrar” para abrir la asignatura</div>
+      </div>
+
+      <div class="schedule-wrap">
+        <div class="schedule">
+          <div class="cell head-cell">Hora</div>
+          <div class="cell head-cell">Lunes</div>
+          <div class="cell head-cell">Martes</div>
+          <div class="cell head-cell">Miércoles</div>
+
+          <div class="cell time-cell">17:00–18:00</div>
+          <div class="cell empty">—</div>
+          <div class="cell empty">—</div>
+          <div class="cell"><div class="event project"><div><div class="event-title">Proyecto Intermodular</div><div class="event-meta">Alejandro Manrique</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=44" target="_blank" rel="noopener">Entrar al curso ↗</a></div></div>
+
+          <div class="cell time-cell">18:00–19:00</div>
+          <div class="cell empty">—</div><div class="cell empty">—</div><div class="cell empty">—</div>
+
+          <div class="cell time-cell">19:00–20:00</div>
+          <div class="cell"><div class="event english"><div><div class="event-title">Inglés Profesional GS · B1</div><div class="event-meta">Alberto González</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=7" target="_blank" rel="noopener">Entrar al curso ↗</a></div></div>
+          <div class="cell"><div class="event diw"><div><div class="event-title">Diseño de Interfaces Web</div><div class="event-meta">Alexis Toledo Toledo</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=18" target="_blank" rel="noopener">Entrar al curso ↗</a></div></div>
+          <div class="cell empty">—</div>
+
+          <div class="cell time-cell">20:00–21:00</div>
+          <div class="cell"><div class="event english"><div><div class="event-title">Inglés Profesional GS · B2</div><div class="event-meta">Alberto González</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=7" target="_blank" rel="noopener">Entrar al curso ↗</a></div></div>
+          <div class="cell"><div class="event dwec"><div><div class="event-title">Desarrollo Web en Entorno Cliente</div><div class="event-meta">Alfredo Valero Rodríguez</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=20" target="_blank" rel="noopener">Entrar al curso ↗</a></div></div>
+          <div class="cell"><div class="event daw"><div><div class="event-title">Despliegue de Aplicaciones Web</div><div class="event-meta">Alexis Toledo Toledo</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=19" target="_blank" rel="noopener">Entrar al curso ↗</a></div></div>
+
+          <div class="cell time-cell">21:00–22:00</div>
+          <div class="cell"><div class="event dwes"><div><div class="event-title">Desarrollo Web en Entorno Servidor</div><div class="event-meta">Seila Vega</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=21" target="_blank" rel="noopener">Entrar al curso ↗</a></div></div>
+          <div class="cell"><div class="event angular"><div><div class="event-title">CTOP Optativa · Framework Angular</div><div class="event-meta">Alfredo Valero Rodríguez</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=22" target="_blank" rel="noopener">Entrar al curso ↗</a></div></div>
+          <div class="cell empty">—</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tab-panel hidden" id="tutorials">
+      <div class="section-head">
+        <div>
+          <h2>Horario de tutorías</h2>
+          <div class="section-note">Tutorías on-line</div>
+        </div>
+        <div class="section-note">El miércoles a las 19:00 coinciden varias tutorías</div>
+      </div>
+
+      <div class="schedule-wrap">
+        <div class="schedule">
+          <div class="cell head-cell">Hora</div>
+          <div class="cell head-cell">Lunes</div>
+          <div class="cell head-cell">Martes</div>
+          <div class="cell head-cell">Miércoles</div>
+
+          <div class="cell time-cell">17:00–18:00</div>
+          <div class="cell empty">—</div><div class="cell empty">—</div>
+          <div class="cell"><div class="event project"><div><div class="event-title">Proyecto Intermodular</div><div class="event-meta">Clase + tutoría · Alejandro Manrique</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=44" target="_blank" rel="noopener">Entrar ↗</a></div></div>
+
+          <div class="cell time-cell">18:00–19:00</div>
+          <div class="cell empty">—</div>
+          <div class="cell"><div class="event diw"><div><div class="event-title">Diseño de Interfaces Web</div><div class="event-meta">Alexis Toledo Toledo</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=18" target="_blank" rel="noopener">Entrar ↗</a></div></div>
+          <div class="cell empty">—</div>
+
+          <div class="cell time-cell">19:00–20:00</div>
+          <div class="cell empty">—</div><div class="cell empty">—</div>
+          <div class="cell">
+            <div class="event english"><div><div class="event-title">Inglés Profesional GS · B1</div><div class="event-meta">Alberto González</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=7" target="_blank" rel="noopener">Entrar ↗</a></div>
+            <div class="event angular"><div><div class="event-title">CTOP Optativa · Framework Angular</div><div class="event-meta">Alfredo Valero Rodríguez</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=22" target="_blank" rel="noopener">Entrar ↗</a></div>
+            <div class="event dwec"><div><div class="event-title">Desarrollo Web en Entorno Cliente</div><div class="event-meta">Alfredo Valero Rodríguez</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=20" target="_blank" rel="noopener">Entrar ↗</a></div>
+            <div class="event daw"><div><div class="event-title">Despliegue de Aplicaciones Web</div><div class="event-meta">Alexis Toledo Toledo</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=19" target="_blank" rel="noopener">Entrar ↗</a></div>
+          </div>
+
+          <div class="cell time-cell">20:00–21:00</div>
+          <div class="cell"><div class="event dwes"><div><div class="event-title">Desarrollo Web en Entorno Servidor</div><div class="event-meta">Seila Vega</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=21" target="_blank" rel="noopener">Entrar ↗</a></div></div>
+          <div class="cell empty">—</div>
+          <div class="cell"><div class="event english"><div><div class="event-title">Inglés Profesional GS · B2</div><div class="event-meta">Alberto González</div></div><a class="event-link" href="https://fp.foc.es/course/view.php?id=7" target="_blank" rel="noopener">Entrar ↗</a></div></div>
+
+          <div class="cell time-cell">21:00–22:00</div>
+          <div class="cell empty">—</div><div class="cell empty">—</div><div class="cell empty">—</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tab-panel hidden" id="courses">
+      <div class="section-head">
+        <div>
+          <h2>Accesos rápidos</h2>
+          <div class="section-note">Todos tus cursos en un solo sitio</div>
+        </div>
+      </div>
+      <div class="courses">
+        <a class="course-card" href="https://fp.foc.es/course/view.php?id=7" target="_blank" rel="noopener"><div class="course-code">Inglés</div><div class="course-name">Inglés Profesional GS</div><div class="course-cta">Abrir asignatura ↗</div></a>
+        <a class="course-card" href="https://fp.foc.es/course/view.php?id=22" target="_blank" rel="noopener"><div class="course-code">Angular</div><div class="course-name">CTOP Optativa · Framework Angular</div><div class="course-cta">Abrir asignatura ↗</div></a>
+        <a class="course-card" href="https://fp.foc.es/course/view.php?id=21" target="_blank" rel="noopener"><div class="course-code">DWES</div><div class="course-name">Desarrollo Web en Entorno Servidor</div><div class="course-cta">Abrir asignatura ↗</div></a>
+        <a class="course-card" href="https://fp.foc.es/course/view.php?id=20" target="_blank" rel="noopener"><div class="course-code">DWEC</div><div class="course-name">Desarrollo Web en Entorno Cliente</div><div class="course-cta">Abrir asignatura ↗</div></a>
+        <a class="course-card" href="https://fp.foc.es/course/view.php?id=19" target="_blank" rel="noopener"><div class="course-code">DAW</div><div class="course-name">Despliegue de Aplicaciones Web</div><div class="course-cta">Abrir asignatura ↗</div></a>
+        <a class="course-card" href="https://fp.foc.es/course/view.php?id=18" target="_blank" rel="noopener"><div class="course-code">DIW</div><div class="course-name">Diseño de Interfaces Web</div><div class="course-cta">Abrir asignatura ↗</div></a>
+        <a class="course-card" href="https://fp.foc.es/course/view.php?id=44" target="_blank" rel="noopener"><div class="course-code">Proyecto</div><div class="course-name">Proyecto Intermodular</div><div class="course-cta">Abrir asignatura ↗</div></a>
+      </div>
+    </section>
+
+    <footer>Calendario personal FOC · Los enlaces abren el campus oficial en una pestaña nueva.</footer>
+  </main>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.tab-panel');
+    tabs.forEach(tab => tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.add('hidden'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.target).classList.remove('hidden');
+    }));
+
+    const sessions = [
+      {day:1,start:'19:00',end:'20:00',name:'Inglés Profesional GS · B1',url:'https://fp.foc.es/course/view.php?id=7'},
+      {day:1,start:'20:00',end:'21:00',name:'Inglés Profesional GS · B2',url:'https://fp.foc.es/course/view.php?id=7'},
+      {day:1,start:'21:00',end:'22:00',name:'Desarrollo Web en Entorno Servidor',url:'https://fp.foc.es/course/view.php?id=21'},
+      {day:2,start:'19:00',end:'20:00',name:'Diseño de Interfaces Web',url:'https://fp.foc.es/course/view.php?id=18'},
+      {day:2,start:'20:00',end:'21:00',name:'Desarrollo Web en Entorno Cliente',url:'https://fp.foc.es/course/view.php?id=20'},
+      {day:2,start:'21:00',end:'22:00',name:'CTOP Optativa · Framework Angular',url:'https://fp.foc.es/course/view.php?id=22'},
+      {day:3,start:'17:00',end:'18:00',name:'Proyecto Intermodular',url:'https://fp.foc.es/course/view.php?id=44'},
+      {day:3,start:'20:00',end:'21:00',name:'Despliegue de Aplicaciones Web',url:'https://fp.foc.es/course/view.php?id=19'}
+    ];
+
+    function minutes(time){ const [h,m]=time.split(':').map(Number); return h*60+m; }
+    function updateNext(){
+      const now = new Date();
+      const d = now.getDay();
+      const current = now.getHours()*60 + now.getMinutes();
+      const label = document.getElementById('nextLabel');
+      const title = document.getElementById('nextTitle');
+      const meta = document.getElementById('nextMeta');
+
+      const live = sessions.find(s => s.day===d && current>=minutes(s.start) && current<minutes(s.end));
+      if(live){
+        label.textContent='Ahora mismo';
+        title.innerHTML='<a href="'+live.url+'" target="_blank" rel="noopener" style="color:white;text-decoration:none">'+live.name+' ↗</a>';
+        meta.textContent=live.start+'–'+live.end;
+        return;
+      }
+
+      const dayNames=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+      let candidates=[];
+      for(let offset=0; offset<8; offset++){
+        const day=(d+offset)%7;
+        const found=sessions.filter(s=>s.day===day && (offset>0 || minutes(s.start)>current));
+        if(found.length){ candidates=found.sort((a,b)=>minutes(a.start)-minutes(b.start)); break; }
+      }
+      if(candidates.length){
+        const next=candidates[0];
+        let offset=(next.day-d+7)%7;
+        if(offset===0 && minutes(next.start)<=current) offset=7;
+        label.textContent='Próxima clase';
+        title.innerHTML='<a href="'+next.url+'" target="_blank" rel="noopener" style="color:white;text-decoration:none">'+next.name+' ↗</a>';
+        meta.textContent=(offset===0?'Hoy':offset===1?'Mañana':dayNames[next.day])+' · '+next.start+'–'+next.end;
+      }
+    }
+    updateNext();
+    setInterval(updateNext, 60000);
+  </script>
+</body>
+</html>
